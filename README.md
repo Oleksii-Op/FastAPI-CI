@@ -7,6 +7,7 @@
 * Bandit - is a tool designed to find common security issues in Python code. + downloadable log artifacts
 * Safely - is a Python dependency vulnerability scanner. + downloadable log artifacts
 
+![images/img.png](/images/img.png)
 
 ### Clone the repo
 ```shell
