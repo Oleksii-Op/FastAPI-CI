@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "fastapi-ci"
 version = "0.1.0"
-description = "Testing FastAPI application with Gitlab CI
+description = "Testing FastAPI application with Gitlab CI"
 authors = ["Oleksii-Op <oleksii.oprish@gmail.com>"]
 license = "GPLv2"
 readme = "README.md"
@@ -12,7 +12,6 @@ fastapi = "^0.115.8"
 uvicorn = {extras = ["standard"], version = "^0.34.0"}
 pydantic-settings = "^2.7.1"
 sqlmodel = "^0.0.22"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
