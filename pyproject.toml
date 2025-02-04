@@ -3,7 +3,7 @@ name = "fastapi-ci"
 version = "0.1.0"
 description = "Testing FastAPI application with Gitlab CI
 authors = ["Oleksii-Op <oleksii.oprish@gmail.com>"]
-license = "GNU GENERAL PUBLIC LICENSE Version 2"
+license = "GPLv2"
 readme = "README.md"
 
 [tool.poetry.dependencies]
