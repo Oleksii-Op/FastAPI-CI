@@ -8,13 +8,13 @@ from core.config import settings
 import logging
 from core.models.user import User
 from sqlalchemy.orm import Session
+from logger_config import configure_logger
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app_instance: FastAPI):  # type: ignore
+async def lifespan(app_instance: FastAPI):
     logger.info("Starting app")
     logger.info("Creating database")
     get_db.create_database()
@@ -24,7 +24,10 @@ async def lifespan(app_instance: FastAPI):  # type: ignore
     get_db.dispose_database()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title=settings.PROJECT_NAME,
+)
 
 
 @app.get("/user/{id}")
@@ -57,6 +60,7 @@ def create_user(
 
 
 if __name__ == "__main__":
+    configure_logger()
     uvicorn.run(
         "main:app",
         host=settings.runtime.host,

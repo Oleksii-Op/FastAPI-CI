@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     )
     runtime: RuntimeSettings = RuntimeSettings()
     db: DatabaseConfig
+    PROJECT_NAME: str
 
 
-settings = Settings()
+settings = Settings()  # type: ignore
