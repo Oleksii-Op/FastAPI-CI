@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "fastapi-testing"
+version = "0.1.0"
+description = "Testing app for CI"
+authors = ["Oleksii-Op <oleksii.oprish@gmail.com>"]
+license = "GPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.12.7"
+fastapi = "^0.115.8"
+uvicorn = {extras = ["standard"], version = "^0.34.0"}
+pydantic-settings = "^2.7.1"
+sqlmodel = "^0.0.22"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+pytest = "^8.3.4"
+mypy = "^1.14.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
