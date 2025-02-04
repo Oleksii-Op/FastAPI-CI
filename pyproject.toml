@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "fastapi-testing"
+name = "fastapi-ci"
 version = "0.1.0"
-description = "Testing app for CI"
+description = "Testing FastAPI application for CI"
 authors = ["Oleksii-Op <oleksii.oprish@gmail.com>"]
 license = "GPL"
 readme = "README.md"
