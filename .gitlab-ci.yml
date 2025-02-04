@@ -1,0 +1,81 @@
+stages:
+    - build
+    - test
+    - security_check
+
+variables:
+    PYTHON_VERSION: 3.12.7
+
+
+before_install:
+    stage: build
+    image: python:$PYTHON_VERSION-alpine
+    script:
+        - apk add --no-cache curl git bash gcc python3-dev musl-dev linux-headers
+        - curl -sSL https://install.python-poetry.org | POETRY_HOME=$CI_PROJECT_DIR/poetry python3 -
+        - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
+        - poetry config virtualenvs.in-project true
+        - poetry install --no-root
+    cache:
+        key:
+            files:
+                - poetry.lock
+        paths:
+            - $CI_PROJECT_DIR/poetry.lock
+            - $CI_PROJECT_DIR/pyproject.toml
+            - $CI_PROJECT_DIR/.venv/
+    artifacts:
+        paths:
+            - $CI_PROJECT_DIR/.venv/
+            - $CI_PROJECT_DIR/poetry/
+        expire_in: 1 week
+
+run_pytest:
+    stage: test
+    image: python:$PYTHON_VERSION-alpine
+    dependencies:
+        - before_install
+    script:
+        - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
+        - source $CI_PROJECT_DIR/.venv/bin/activate
+        - poetry run pytest tests/*
+
+run_mypy:
+    stage: test
+    image: python:$PYTHON_VERSION-alpine
+    dependencies:
+        - before_install
+    script:
+        - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
+        - source $CI_PROJECT_DIR/.venv/bin/activate
+        - poetry run mypy . || true
+
+bandit_check:
+    stage: security_check
+    image: python:$PYTHON_VERSION-alpine
+    dependencies:
+        - before_install
+    script:
+        - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
+        - source $CI_PROJECT_DIR/.venv/bin/activate
+        - poetry add bandit
+        - find . -type f -name "*.py" ! -path "./.venv/*" ! -path "./poetry/*" | xargs bandit -r --format txt --output bandit_report.log || true
+    artifacts:
+        paths:
+            - $CI_PROJECT_DIR/bandit_report.log
+
+safety_check:
+    stage: security_check
+    image: python:$PYTHON_VERSION-alpine
+    dependencies:
+        - before_install
+    script:
+        - apk add --no-cache gcc python3-dev musl-dev linux-headers
+        - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
+        - source $CI_PROJECT_DIR/.venv/bin/activate
+        - poetry add safety
+        - pip freeze >> requirements.txt
+        - safety check -r requirements.txt --json > safety_report.json || true
+    artifacts:
+        paths:
+            - safety_report.json
