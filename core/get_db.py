@@ -1,6 +1,6 @@
-from sqlmodel import create_engine, SQLModel
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy import Engine
+from sqlalchemy import Engine, create_engine
+from core.models import Base
 from typing import Generator
 from core.config import settings
 from core.models.user import User  # type: ignore
@@ -36,12 +36,16 @@ class DatabaseHelper:
         self.engine.dispose()
 
     def create_database(self) -> None:
-        SQLModel.metadata.create_all(self.engine)
-        logger.warning("Database creation has finished")
+        Base.metadata.create_all(self.engine)
+        logger.warning(
+            "Database creation has finished",
+        )
 
     def dispose_database(self) -> None:
-        SQLModel.metadata.drop_all(self.engine)
-        logger.warning("Database deletion has been successful")
+        Base.metadata.drop_all(self.engine)
+        logger.warning(
+            "Database deletion has been successful",
+        )
 
     def session_getter(self) -> Generator[Session, None, None]:
         with self.session_factory() as session:
