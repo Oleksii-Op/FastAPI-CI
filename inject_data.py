@@ -5,9 +5,14 @@ from core import get_db
 from core.models import User
 from sqlalchemy.orm import Session
 from time import time
+import logging
+from sqlite3 import OperationalError
+from sys import exit
+
+logger = logging.getLogger(__name__)
 
 
-def inject_data(multiple_of: int):
+def inject_data(multiple_of: int) -> None:
     """
     Inserts fake user data into the database.
 
@@ -32,17 +37,30 @@ def inject_data(multiple_of: int):
                 session.add_all(users)
                 counter += 10
                 session.commit()
-
+        except OperationalError:
+            logger.exception(
+                "Failed to inject fake user data, no connection",
+            )
+            exit(1)
         except Exception as e:
             counter -= 10
-            print(f"Failed to inject data: {e}")
+            logger.error(
+                "Failed to inject data %r:",
+                e,
+            )
 
-    print(f"Added {counter} users.")
-    print("Done")
+    logger.info(
+        "Added %d users",
+        counter,
+    )
+    logger.info("Finished injecting data")
 
 
 if __name__ == "__main__":
     start = time()
     inject_data(1000)
     end = time()
-    print(f"Injected in {end - start} seconds.")
+    logger.info(
+        "Injected data took %.2f seconds",
+        end - start,
+    )

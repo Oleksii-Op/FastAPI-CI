@@ -32,3 +32,17 @@ class UserBase(BaseModel):
 
 class FullUser(UserBase):
     id: int
+
+
+class UserPatch(UserBase):
+    name: ValidString | None = Field(  # type: ignore
+        default=None,
+        min_length=1,
+        max_length=20,
+    )
+    username: ValidString | None = Field(  # type: ignore
+        default=None,
+        min_length=8,
+        max_length=20,
+    )
+    age: int | None = None

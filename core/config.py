@@ -10,6 +10,16 @@ class RuntimeSettings(BaseModel):
     port: int = 8000
 
 
+class ApiV1Prefix(BaseModel):
+    prefix: str = "/v1"
+    users: str = "/users"
+
+
+class ApiPrefix(BaseModel):
+    prefix: str = "/api"
+    v1: ApiV1Prefix = ApiV1Prefix()
+
+
 class DatabaseConfig(BaseModel):
     url: str
     echo: bool = False
@@ -28,6 +38,7 @@ class Settings(BaseSettings):
     )
     runtime: RuntimeSettings = RuntimeSettings()
     db: DatabaseConfig
+    api: ApiPrefix = ApiPrefix()
     PROJECT_NAME: str
 
 
