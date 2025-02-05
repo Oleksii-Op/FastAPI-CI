@@ -24,7 +24,10 @@ class UserBase(BaseModel):
         min_length=8,
         max_length=20,
     )
-    age: int | None
+    age: int | None = Field(
+        default=None,
+        gt=0,
+    )
 
     class Config:
         from_attributes = True

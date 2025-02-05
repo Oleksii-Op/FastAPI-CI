@@ -1,9 +1,17 @@
+from typing import TypedDict
 import uuid
-
 import pytest
-from core.models.user import User
+from core.schemas import FullUser
 
-valid_user_data = {
+
+class UserData(TypedDict):
+    id: int
+    name: str
+    username: str
+    age: int
+
+
+valid_user_data: UserData = {
     "id": 1,
     "name": "TestUser",
     "username": "testuser",
@@ -12,11 +20,9 @@ valid_user_data = {
 
 
 def test_valid_user_data() -> None:
-    user = User(**valid_user_data)
-    assert user.id == valid_user_data["id"]
-    assert user.name == valid_user_data["name"]
-    assert user.username == valid_user_data["username"]
-    assert user.age == valid_user_data["age"]
+    user = FullUser(**valid_user_data)
+    for key, value in valid_user_data.items():
+        assert getattr(user, key) == value
 
 
 @pytest.mark.parametrize(
@@ -27,17 +33,12 @@ def test_valid_user_data() -> None:
         uuid.uuid4(),
     ],
 )
-def test_wrong_user_id(
-    invalid_id: int | str,
-) -> None:
-    data = valid_user_data.copy()
-    data["id"] = invalid_id
+def test_wrong_user_id(invalid_id: int | str) -> None:
+    data: UserData = valid_user_data.copy()
+    data["id"] = invalid_id  # type: ignore
 
-    with pytest.raises(
-        ValueError,
-    ):
-        user = User(**data)
-        User.model_validate(user.model_dump())
+    with pytest.raises(ValueError):
+        FullUser(**data)
 
 
 @pytest.mark.parametrize(
@@ -48,17 +49,12 @@ def test_wrong_user_id(
         "somevalue",
     ],
 )
-def test_wrong_user_age(
-    invalid_age: int | str,
-) -> None:
-    data = valid_user_data.copy()
-    data["age"] = invalid_age
+def test_wrong_user_age(invalid_age: int | str) -> None:
+    data: UserData = valid_user_data.copy()
+    data["age"] = invalid_age  # type: ignore
 
-    with pytest.raises(
-        ValueError,
-    ):
-        user = User(**data)
-        User.model_validate(user.model_dump())
+    with pytest.raises(ValueError):
+        FullUser(**data)
 
 
 @pytest.mark.parametrize(
@@ -70,15 +66,12 @@ def test_wrong_user_age(
         "name@?1",
     ],
 )
-def test_wrong_name(
-    invalid_name: int | str,
-) -> None:
-    data = valid_user_data.copy()
-    data["name"] = invalid_name
+def test_wrong_name(invalid_name: int | str) -> None:
+    data: UserData = valid_user_data.copy()
+    data["name"] = invalid_name  # type: ignore
 
     with pytest.raises(ValueError):
-        user = User(**data)
-        User.model_validate(user.model_dump())
+        FullUser(**data)
 
 
 @pytest.mark.parametrize(
@@ -91,14 +84,9 @@ def test_wrong_name(
         "name@?1",
     ],
 )
-def test_wrong_username(
-    invalid_username: int | str,
-) -> None:
-    data = valid_user_data.copy()
-    data["username"] = invalid_username
+def test_wrong_username(invalid_username: int | str) -> None:
+    data: UserData = valid_user_data.copy()
+    data["username"] = invalid_username  # type: ignore
 
-    with pytest.raises(
-        ValueError,
-    ):
-        user = User(**data)
-        User.model_validate(user.model_dump())
+    with pytest.raises(ValueError):
+        FullUser(**data)
