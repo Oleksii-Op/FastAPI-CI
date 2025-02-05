@@ -1,7 +1,7 @@
 import re
 from typing import Annotated
 
-from pydantic import BaseModel, AfterValidator, Field
+from pydantic import BaseModel, AfterValidator, Field, ConfigDict
 
 
 def validate_username_or_name(value: str) -> str:
@@ -29,8 +29,9 @@ class UserBase(BaseModel):
         gt=0,
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class FullUser(UserBase):
