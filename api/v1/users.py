@@ -4,11 +4,9 @@ from core.get_db import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from core.models import User
 from core.schemas import UserPatch, UserBase
-from core.config import settings
 
 
 router = APIRouter(
-    prefix=settings.api.v1.users,
     tags=["Users"],
 )
 
