@@ -30,7 +30,7 @@ def create_user(
 
 
 @router.get(
-    "/user/{id}",
+    "/user/{user_id}",
     response_model=UserBase,
     status_code=status.HTTP_200_OK,
 )
@@ -53,8 +53,9 @@ def get_user(
 
 
 @router.patch(
-    "/user/{id}",
+    "/user/{user_id}",
     response_model=UserBase,
+    status_code=status.HTTP_200_OK,
 )
 def update_user(
     user_id: int,
@@ -78,7 +79,10 @@ def update_user(
     return user
 
 
-@router.delete("/user/{id}")
+@router.delete(
+    "/user/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 def delete_user(
     user_id: int,
     session: Annotated[
