@@ -38,7 +38,7 @@ run_pytest:
     script:
         - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
         - source $CI_PROJECT_DIR/.venv/bin/activate
-        - poetry run pytest tests/*
+        - poetry run pytest -v tests/*
 
 run_mypy:
     stage: test
@@ -48,7 +48,7 @@ run_mypy:
     script:
         - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
         - source $CI_PROJECT_DIR/.venv/bin/activate
-        - poetry run mypy . || true
+        - poetry run mypy . || true # remove || true if strict check is required
 
 bandit_check:
     stage: security_check
