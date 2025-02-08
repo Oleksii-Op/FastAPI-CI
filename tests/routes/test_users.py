@@ -16,8 +16,11 @@ def test_create_user(client: TestClient) -> None:
     assert response.status_code == 201
     content = response.json()
     assert "username" in content
+    assert content["username"] == data["username"]
     assert "name" in content
+    assert content["name"] == data["name"]
     assert "age" in content
+    assert content["age"] == data["age"]
 
 
 def test_get_user(client: TestClient) -> None:

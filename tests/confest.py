@@ -7,7 +7,7 @@ from sqlalchemy import StaticPool
 
 from core.get_db import DatabaseHelper, get_db
 
-
+# in memory sqlite3 database
 db_testing = DatabaseHelper(
     url="sqlite:///:memory:",
     connect_args={
@@ -31,5 +31,9 @@ app.dependency_overrides[get_db.session_getter] = db_testing.session_getter  # t
 
 @pytest.fixture(scope="module")
 def client() -> Generator[TestClient, None, None]:
+    """
+    Fixture to yield a test client for each test
+    :return: client: TestClient
+    """
     with TestClient(app=app) as client:
         yield client
