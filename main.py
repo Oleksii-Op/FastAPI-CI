@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from api import router as api_router
 from core.get_db import get_db
-from core.config import settings
+from core.config import settings, Environment
 import logging
 from logger_config import configure_logger
 
@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 async def lifespan(app_instance: FastAPI):  # type: ignore
     logger.info("Starting app")
     logger.info("Creating database")
-    get_db.create_database()
+    if settings.environment != Environment.TESTING:
+        get_db.create_database()
     yield
     logger.info("Stopping app")
     logger.info("Deleting database")

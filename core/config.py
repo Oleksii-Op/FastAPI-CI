@@ -1,8 +1,15 @@
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
+from enum import Enum
 
 load_dotenv()
+
+
+class Environment(str, Enum):
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
 
 
 class RuntimeSettings(BaseModel):
@@ -40,6 +47,7 @@ class Settings(BaseSettings):
     db: DatabaseConfig
     api: ApiPrefix = ApiPrefix()
     PROJECT_NAME: str
+    environment: Environment
 
 
 settings = Settings()  # type: ignore
