@@ -1,7 +1,15 @@
 __all__ = (
     "UserBase",
-    "FullUser",
+    "UserPublic",
     "UserPatch",
+    "UserCreate",
+    "FullUser",
 )
 
-from core.schemas.user import UserBase, FullUser, UserPatch
+from core.schemas.user import (
+    UserBase,
+    UserPublic,
+    UserPatch,
+    UserCreate,
+    FullUser,
+)

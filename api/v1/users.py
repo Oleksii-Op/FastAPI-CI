@@ -1,10 +1,16 @@
 from typing import Annotated
+
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+from api.dependencies import get_current_active_auth_user
 from core.get_db import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from core.models import User
-from core.schemas import UserPatch, UserBase
+from core.schemas import UserPatch, UserBase, UserPublic, UserCreate
 
+
+from auth.jwt_helper import hash_password
 
 router = APIRouter(
     tags=["Users"],
@@ -17,15 +23,28 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 def create_user(
-    user: UserBase,
+    user: UserCreate,
     session: Annotated[
         Session,
         Depends(get_db.session_getter),
     ],
 ) -> UserBase:
-    user_in = User(**user.model_dump())
+    user_dict = user.model_dump()
+    user_dict["is_active_user"] = True
+    user_dict["is_superuser"] = False
+    password = user_dict.pop("password")
+    user_in = User(
+        **user_dict,
+        password=hash_password(password),
+    )
     session.add(user_in)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User already exists",
+        )
     return user
 
 
@@ -64,7 +83,13 @@ def update_user(
         Session,
         Depends(get_db.session_getter),
     ],
+    user_dep: UserPublic = Depends(get_current_active_auth_user),
 ) -> User | None:
+    if not user_dep.is_superuser or user_dep.id != user_id:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            detail="You do not have sufficient privileges",
+        )
     user: User | None = session.get(
         User,
         user_id,
@@ -73,6 +98,8 @@ def update_user(
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
         )
+    if user_in.password:
+        user.password = hash_password(user_in.password)
     for field, value in user_in.model_dump(exclude_unset=True).items():
         setattr(user, field, value)
     session.commit()
@@ -89,7 +116,13 @@ def delete_user(
         Session,
         Depends(get_db.session_getter),
     ],
+    user_dep: UserPublic = Depends(get_current_active_auth_user),
 ) -> None:
+    if not user_dep.is_superuser or user_dep.id != user_id:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            detail="You do not have sufficient privileges",
+        )
     user: User | None = session.get(
         User,
         user_id,
@@ -100,3 +133,13 @@ def delete_user(
         )
     session.delete(user)
     session.commit()
+
+
+@router.get(
+    "/me/",
+    response_model=UserPublic,
+)
+def auth_user_check_self_info(
+    user: UserPublic = Depends(get_current_active_auth_user),
+):
+    return user

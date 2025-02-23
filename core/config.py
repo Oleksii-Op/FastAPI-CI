@@ -2,6 +2,9 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from enum import Enum
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent.parent
 
 load_dotenv()
 
@@ -12,9 +15,18 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 
+class AuthJWT(BaseModel):
+    private_key_path: Path
+    public_key_path: Path
+    algorithm: str
+    access_token_expires_in_minutes: int
+
+
 class RuntimeSettings(BaseModel):
     host: str = "0.0.0.0"
     port: int = 8000
+    # set it up according to your cpu
+    workers: int = 1
 
 
 class ApiV1Prefix(BaseModel):
@@ -48,6 +60,11 @@ class Settings(BaseSettings):
     api: ApiPrefix = ApiPrefix()
     PROJECT_NAME: str
     environment: Environment
+    auth: AuthJWT
 
 
 settings = Settings()  # type: ignore
+
+if settings.environment == Environment.TESTING:
+    settings.auth.private_key_path = BASE_DIR / "tests" / "certs" / "private_key.pem"
+    settings.auth.public_key_path = BASE_DIR / "tests" / "certs" / "public_key.pem"
