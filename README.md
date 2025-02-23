@@ -23,6 +23,10 @@ openssl pkey -in private_key.pem -pubout -out public_key.pem
 ```shell
  mv .env.template .env
 ```
+### Adjust Access token expiration
+```shell
+APP_CONFIG__AUTH__ACCESS_TOKEN_EXPIRES_IN_MINUTES=45 # minutes
+```
 ### Modify project name and sqlite3 db name
 ```shell
 APP_CONFIG__DB__URL=sqlite:///{DB_NAME}
