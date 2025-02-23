@@ -7,7 +7,9 @@ def test_create_user(client: TestClient) -> None:
     data = {
         "name": "Alexander",
         "username": "alexander",
+        "email": "user@example.com",
         "age": 30,
+        "password": "secure_test_password",
     }
     response = client.post(
         url="/api/v1/users/create-user/",
@@ -21,6 +23,8 @@ def test_create_user(client: TestClient) -> None:
     assert content["name"] == data["name"]
     assert "age" in content
     assert content["age"] == data["age"]
+    assert "email" in content
+    assert content["email"] == data["email"]
 
 
 def test_get_user(client: TestClient) -> None:
@@ -32,33 +36,9 @@ def test_get_user(client: TestClient) -> None:
     assert "username" in content
     assert "name" in content
     assert "age" in content
-
-
-def test_update_user(client: TestClient) -> None:
-    data = {
-        "name": "Alex",
-        "username": "alexander14",
-        "age": 25,
-    }
-    response = client.patch(
-        url="/api/v1/users/user/1",
-        json=data,
-    )
-    assert response.status_code == 200
-    content = response.json()
-    assert "username" in content
-    assert "name" in content
-    assert "age" in content
-    assert content["username"] == "alexander14"
-    assert content["name"] == "Alex"
-    assert content["age"] == 25
-
-
-def test_delete_user(client: TestClient) -> None:
-    response = client.delete(
-        url="/api/v1/users/user/1",
-    )
-    assert response.status_code == 204
+    assert "email" in content
+    assert "is_active_user" in content
+    assert "is_superuser" in content
 
 
 @pytest.mark.parametrize(
@@ -70,7 +50,7 @@ def test_delete_user(client: TestClient) -> None:
         "name@?1",
     ],
 )
-def test_create_wrong_user(
+def test_create_wrong_user_name(
     client: TestClient,
     name: str,
 ) -> None:
@@ -93,7 +73,7 @@ def get_non_existing_user(client: TestClient) -> None:
     assert response.status_code == 404
 
 
-def test_update_non_existing_user(client: TestClient) -> None:
+def test_update_unauth_user(client: TestClient) -> None:
     data = {
         "name": "Alex",
         "username": "alexander14",
@@ -103,11 +83,18 @@ def test_update_non_existing_user(client: TestClient) -> None:
         url="/api/v1/users/user/1",
         json=data,
     )
-    assert response.status_code == 404
+    assert response.status_code == 401
 
 
-def test_delete_non_existing_user(client: TestClient) -> None:
+def test_delete_unauth_user(client: TestClient) -> None:
     response = client.delete(
-        url="/api/v1/users/user/150",
+        url="/api/v1/users/user/1",
     )
-    assert response.status_code == 404
+    assert response.status_code == 401
+
+
+def test_getme_unauth_user(client: TestClient) -> None:
+    response = client.delete(
+        url="/api/v1/users/me/",
+    )
+    assert response.status_code == 405
