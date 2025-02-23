@@ -13,6 +13,12 @@
 ```shell
 git clone project_url
 ```
+### Generate ED25519 public and private keys in certs/ directory
+```shell
+mkdir certs/ && cd certs/
+openssl genpkey -algorithm Ed25519 -out private_key.pem
+openssl pkey -in private_key.pem -pubout -out public_key.pem
+```
 ### Rename .env.template to .env
 ```shell
  mv .env.template .env

@@ -36,5 +36,6 @@ if __name__ == "__main__":
         "main:app",
         host=settings.runtime.host,
         port=settings.runtime.port,
-        reload=True,
+        reload=True if settings.environment == Environment.DEVELOPMENT else False,
+        workers=settings.runtime.workers,
     )
