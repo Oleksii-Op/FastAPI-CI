@@ -64,7 +64,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
-
-if settings.environment == Environment.TESTING:
-    settings.auth.private_key_path = BASE_DIR / "tests" / "certs" / "private_key.pem"
-    settings.auth.public_key_path = BASE_DIR / "tests" / "certs" / "public_key.pem"

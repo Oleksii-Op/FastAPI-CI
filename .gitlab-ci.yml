@@ -39,8 +39,9 @@ run_pytest:
         - export PATH="$CI_PROJECT_DIR/poetry/bin:$PATH"
         - source $CI_PROJECT_DIR/.venv/bin/activate
         - apk add openssl
-        - openssl genpkey -algorithm Ed25519 -out tests/certs/private_key.pem
-        - openssl pkey -in private_key.pem -pubout -out tests/certs/public_key.pem
+        - mkdir $CI_PROJECT_DIR/certs/
+        - openssl genpkey -algorithm Ed25519 -out $CI_PROJECT_DIR/certs/private_key.pem
+        - openssl pkey -in $CI_PROJECT_DIR/certs/private_key.pem -pubout -out $CI_PROJECT_DIR/certs/public_key.pem
         - poetry run pytest -v tests/*
 
 run_mypy:
