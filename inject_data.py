@@ -1,8 +1,11 @@
 from random import randint
 
 from faker import Faker
+
+from auth.jwt_helper import hash_password
 from core import get_db
 from core.models import User
+from core.schemas import UserCreate
 from sqlalchemy.orm import Session
 from time import time
 import logging
@@ -27,12 +30,22 @@ def inject_data(multiple_of: int) -> None:
             with Session(get_db.engine) as session:
                 users = []
                 for _ in range(10):
-                    user_in = User(
-                        name=fake.name(),
-                        username=fake.user_name(),
-                        age=randint(16, 80),
-                    )
-                    users.append(user_in)
+                    password = hash_password(fake.password())
+                    try:
+                        user_in = UserCreate(
+                            name=fake.name().split(" ")[0],
+                            username=fake.user_name(),
+                            age=randint(16, 80),
+                            password=password,
+                            email=fake.email(),  # type: ignore
+                            is_active_user=True,
+                            is_superuser=False,
+                        )
+                    except Exception:
+                        logger.warning("Could not validate user, skipping...")
+                        continue
+                    user = User(**user_in.model_dump())
+                    users.append(user)
 
                 session.add_all(users)
                 counter += 10
