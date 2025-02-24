@@ -38,6 +38,7 @@ omit = [
     "logger_config.py",
     "tests/*",
     "main.py",
+    "__init__.py"
 ]
 
 [build-system]
