@@ -1,16 +1,23 @@
-from tests.confest import client, setup_and_teardown  # type: ignore
+# from tests.conftest import client, setup_and_teardown  # type: ignore
+from typing import Any
+
 from fastapi.testclient import TestClient
 import pytest
 
 
-def test_create_user(client: TestClient) -> None:
-    data = {
+@pytest.fixture
+def data() -> dict[str, Any]:
+    data_dict = {
         "name": "Alexander",
         "username": "alexander",
         "email": "user@example.com",
         "age": 30,
         "password": "secure_test_password",
     }
+    return data_dict
+
+
+def test_create_user(client: TestClient, data) -> None:
     response = client.post(
         url="/api/v1/users/create-user/",
         json=data,
@@ -25,6 +32,20 @@ def test_create_user(client: TestClient) -> None:
     assert content["age"] == data["age"]
     assert "email" in content
     assert content["email"] == data["email"]
+
+
+def test_auth_user_issue_jwt(client: TestClient, data) -> None:
+    form_data = {
+        "username": data["username"],
+        "password": data["password"],
+    }
+    response = client.post(
+        url="/api/jwt/login/",
+        data=form_data,
+    )
+    assert response.status_code == 200
+    assert response.json()["access_token"] is not None
+    assert response.json()["token_type"] == "Bearer"
 
 
 def test_get_user(client: TestClient) -> None:
@@ -68,7 +89,7 @@ def test_create_wrong_user_name(
 
 def get_non_existing_user(client: TestClient) -> None:
     response = client.get(
-        url="/api/v1/users/user/150",
+        url="/api/v1/users/user/15000",
     )
     assert response.status_code == 404
 
