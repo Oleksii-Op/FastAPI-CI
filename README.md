@@ -7,7 +7,8 @@
 * Bandit - is a tool designed to find common security issues in Python code. + downloadable log artifacts
 * Safely - is a Python dependency vulnerability scanner. + downloadable log artifacts
 
-![images/img.png](/images/img.png)
+![images/pipeline.png](/images/pipeline.png)
+![images/coverage.png](/images/coverage.png)
 
 ### Clone the repo
 ```shell
@@ -36,3 +37,12 @@ APP_CONFIG__PROJECT_NAME=Your-project-name
 ```shell
 python3 main.py
 ```
+### Endpoints:
+```http request
+POST  /api/v1/users/create-user/              # create user
+GET  /api/v1/users/user/{user_id}             # get user by id
+PATCH  /api/v1/users/user/{user_id}           # update users data
+DELETE  /api/v1/users/user/{user_id}          # delete a user
+GET  /api/v1/users/me                         # get info 
+
+POST  /api/jwt/login/                         # issue a jwt bearer token
