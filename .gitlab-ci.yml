@@ -42,7 +42,11 @@ run_pytest:
         - mkdir $CI_PROJECT_DIR/certs/
         - openssl genpkey -algorithm Ed25519 -out $CI_PROJECT_DIR/certs/private_key.pem
         - openssl pkey -in $CI_PROJECT_DIR/certs/private_key.pem -pubout -out $CI_PROJECT_DIR/certs/public_key.pem
-        - poetry run pytest -v tests/*
+        - poetry run pytest -vv tests/*
+        - poetry run pytest --cov=. tests/ > coverage-report.log
+    artifacts:
+        paths:
+            - $CI_PROJECT_DIR/coverage-report.log
 
 run_mypy:
     stage: test
