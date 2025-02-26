@@ -48,6 +48,17 @@ def get_current_auth_user(
     return user
 
 
+def get_current_superuser(
+    user: UserBase = Depends(get_current_auth_user),
+):
+    if user.is_superuser:
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have sufficient privileges",
+    )
+
+
 def get_current_active_auth_user(
     user: UserBase = Depends(get_current_auth_user),
 ):
