@@ -51,7 +51,7 @@ class UserPublic(UserBase):
     id: int
 
 
-class UserPatch(UserBase):
+class UserPatch(BaseModel):
     name: ValidString | None = Field(  # type: ignore
         default=None,
         min_length=1,

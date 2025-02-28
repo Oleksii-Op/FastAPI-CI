@@ -85,7 +85,7 @@ def update_user(
     ],
     user_dep: UserPublic = Depends(get_current_active_auth_user),
 ) -> User | None:
-    if not user_dep.is_superuser or user_dep.id != user_id:
+    if not user_dep.is_superuser and user_dep.id != user_id:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
             detail="You do not have sufficient privileges",
@@ -98,10 +98,11 @@ def update_user(
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
         )
-    if user_in.password:
-        user.password = hash_password(user_in.password)
-    for field, value in user_in.model_dump(exclude_unset=True).items():
+    for field, value in user_in.model_dump(
+        exclude_unset=True, exclude=user_in.password
+    ).items():
         setattr(user, field, value)
+    setattr(user, "password", hash_password(user_in.password))
     session.commit()
     return user
 
@@ -118,10 +119,15 @@ def delete_user(
     ],
     user_dep: UserPublic = Depends(get_current_active_auth_user),
 ) -> None:
-    if not user_dep.is_superuser or user_dep.id != user_id:
+    if not user_dep.is_superuser and user_dep.id != user_id:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
             detail="You do not have sufficient privileges",
+        )
+    if user_dep.is_superuser:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Superusers cannot be deleted",
         )
     user: User | None = session.get(
         User,
