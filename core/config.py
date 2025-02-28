@@ -15,6 +15,13 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 
+class SuperUser(BaseModel):
+    name: str
+    email: str
+    password: str
+    username: str
+
+
 class AuthJWT(BaseModel):
     private_key_path: Path
     public_key_path: Path
@@ -61,6 +68,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     environment: Environment
     auth: AuthJWT
+    superuser: SuperUser
 
 
 settings = Settings()  # type: ignore
