@@ -3,7 +3,7 @@ from sqlalchemy import Engine, create_engine, Pool, StaticPool
 from core.models import Base
 from typing import Generator, Type
 from core.config import settings
-from core.models.user import User  # type: ignore
+from core.models import User, Product, Manufacturer  # type: ignore
 import logging
 
 logger = logging.getLogger(__name__)

@@ -9,7 +9,12 @@ class ManufacturerBase(BaseModel):
         from_attributes=True,
     )
 
+
 class ManufacturerView(ManufacturerBase):
     id: int
     created_at: datetime
     updated_at: datetime
+
+
+class ManufacturerUpdate(ManufacturerBase):
+    name: str | None = None
