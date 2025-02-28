@@ -1,14 +1,16 @@
-from collections.abc import Generator
+from typing import Generator
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from actions.create_first_superuser import create_first_superuser
 from core.models import User
 from main import app
 from sqlalchemy import StaticPool
 from core.get_db import DatabaseHelper, get_db
 from core.schemas.user import UserCreate
 from faker import Faker
+from tests.utils import issue_access_token
 
 # in memory sqlite3 database
 db_testing = DatabaseHelper(
@@ -26,13 +28,15 @@ db_testing = DatabaseHelper(
 def setup_and_teardown() -> Generator[None, None, None]:
     """Fixture to create and drop tables for each test"""
     db_testing.create_database()
+    # CREATE GLOBAL SUPERUSER
+    create_first_superuser(db_testing.session_factory)
     yield
 
 
 app.dependency_overrides[get_db.session_getter] = db_testing.session_getter  # type: ignore
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def client() -> Generator[TestClient, None, None]:
     """
     Fixture to yield a test client for each test
@@ -46,7 +50,30 @@ def client() -> Generator[TestClient, None, None]:
 def get_session() -> Generator[Session, None, None]:
     with db_testing.session_factory() as session:
         yield session
-        session.rollback()
+
+
+@pytest.fixture(scope="module")
+def create_test_user_token(get_session) -> Generator[str, None, None]:
+    user = User(
+        email="user@example.com",
+        username="TestUser",
+        password="testuserpassword",
+        name="TestUser",
+        id=2,
+        is_active_user=True,
+        is_superuser=False,
+    )
+    get_session.add(user)
+    get_session.commit()
+    token = issue_access_token(
+        {
+            "username": user.username,
+            "email": user.email,
+        }
+    )
+    yield token
+    get_session.delete(user)
+    get_session.commit()
 
 
 def generate_10_users() -> list[UserCreate]:

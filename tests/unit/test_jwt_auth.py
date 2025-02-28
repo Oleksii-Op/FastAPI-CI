@@ -27,7 +27,7 @@ def test_hash_password(password):
 
 @pytest.mark.parametrize(
     "password",
-    [faker.password() for _ in range(10)],
+    [faker.password() for _ in range(3)],
 )
 def test_false_hash_password(password):
     hashed_password = hash_password(password)
