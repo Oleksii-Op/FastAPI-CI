@@ -1,14 +1,17 @@
 from typing import Annotated, Sequence
 
 from fastapi import Depends, APIRouter, HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy import select, ScalarResult
 
-from api.dependencies import get_current_superuser
+from api.dependencies import (
+    get_current_superuser,
+    SessionGetter,
+    get_product_by_id_dep,
+    get_manufacturer_by_id_dep,
+)
 from core.models import Product, Manufacturer
 from core.schemas import UserPublic
 from core.schemas.product import ProductBase, ProductView, ProductUpdate
-from core.get_db import get_db
 import logging
 
 router = APIRouter(
@@ -25,14 +28,11 @@ logger = logging.getLogger(__name__)
     status_code=status.HTTP_200_OK,
 )
 def get_all_products(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-) -> Sequence[Product] | None:
+    session: SessionGetter,
+) -> Sequence[Product]:
     stmt = select(Product).order_by(Product.name)
-    result: ScalarResult[Product] | None = session.scalars(stmt)
-    products: Sequence[Product] | None = result.all()
+    result: ScalarResult[Product] = session.scalars(stmt)
+    products: Sequence[Product] = result.all()
     if not products:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -47,21 +47,11 @@ def get_all_products(
     status_code=status.HTTP_200_OK,
 )
 def get_product(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-    product_id: int,
-) -> Product | None:
-    product: Product | None = session.get(
+    product: Annotated[
         Product,
-        product_id,
-    )
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found",
-        )
+        Depends(get_product_by_id_dep),
+    ],
+) -> Product | None:
     return product
 
 
@@ -71,23 +61,17 @@ def get_product(
     status_code=status.HTTP_200_OK,
 )
 def update_product(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-    product_id: int,
+    session: SessionGetter,
     model_update: ProductUpdate,
-    superuser: UserPublic = Depends(get_current_superuser),
-):
-    product: Product | None = session.get(
+    superuser: Annotated[
+        UserPublic,
+        Depends(get_current_superuser),
+    ],
+    product: Annotated[
         Product,
-        product_id,
-    )
-    if not product:
-        raise HTTPException(
-            status_code=404,
-            detail="Manufacturer not found",
-        )
+        Depends(get_product_by_id_dep),
+    ],
+):
     for field, value in model_update.model_dump(exclude_unset=True).items():
         setattr(product, field, value)
     session.commit()
@@ -106,22 +90,16 @@ def update_product(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_product(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
+    session: SessionGetter,
+    superuser: Annotated[
+        UserPublic,
+        Depends(get_current_superuser),
     ],
-    product_id: int,
-    superuser: UserPublic = Depends(get_current_superuser),
-):
-    product: Product | None = session.get(
+    product: Annotated[
         Product,
-        product_id,
-    )
-    if not product:
-        raise HTTPException(
-            status_code=404,
-            detail="Manufacturer not found",
-        )
+        Depends(get_product_by_id_dep),
+    ],
+):
     session.delete(product)
     session.commit()
     logging.warning(
@@ -138,20 +116,17 @@ def delete_product(
     response_model=ProductView,
 )
 def create_product(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-    manufacturer_id: int,
+    session: SessionGetter,
     product: ProductBase,
-    superuser: UserPublic = Depends(get_current_superuser),
+    superuser: Annotated[
+        UserPublic,
+        Depends(get_current_superuser),
+    ],
+    manufacturer: Annotated[
+        Manufacturer,
+        Depends(get_manufacturer_by_id_dep),
+    ],
 ):
-    manufacturer = session.get(Manufacturer, manufacturer_id)
-    if not manufacturer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Manufacturer not found",
-        )
     obj_in = Product(
         name=product.name,
         year=product.year,

@@ -4,10 +4,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, ScalarResult
 from starlette import status
-from sqlalchemy.orm import Session
 
-from api.dependencies import get_current_superuser
-from core.get_db import get_db
+from api.dependencies import (
+    get_current_superuser,
+    get_manufacturer_by_id_dep,
+    SessionGetter,
+)
 from core.models.manufacturer import Manufacturer
 from core.schemas import UserPublic
 
@@ -29,18 +31,15 @@ router = APIRouter(
     status_code=status.HTTP_200_OK,
 )
 def get_all_manufacturers(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-) -> Sequence[Manufacturer] | None:
+    session: SessionGetter,
+) -> Sequence[Manufacturer]:
     stmt = select(Manufacturer)
-    result: ScalarResult[Manufacturer] | None = session.scalars(stmt)
-    manufacturers: Sequence[Manufacturer] | None = result.all()
+    result: ScalarResult[Manufacturer] = session.scalars(stmt)
+    manufacturers: Sequence[Manufacturer] = result.all()
     if not manufacturers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No manufacturers found",
+            detail="No manufacturers exist",
         )
     return manufacturers
 
@@ -51,21 +50,11 @@ def get_all_manufacturers(
     status_code=200,
 )
 def get_manufacturer(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-    manufacturer_id: int,
-) -> Manufacturer:
-    manufacturer: Manufacturer | None = session.get(
+    manufacturer: Annotated[
         Manufacturer,
-        manufacturer_id,
-    )
-    if not manufacturer:
-        raise HTTPException(
-            status_code=404,
-            detail="Manufacturer not found",
-        )
+        Depends(get_manufacturer_by_id_dep),
+    ],
+) -> Manufacturer:
     return manufacturer
 
 
@@ -75,23 +64,17 @@ def get_manufacturer(
     status_code=200,
 )
 def update_manufacturer(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
-    manufacturer_id: int,
+    session: SessionGetter,
     model_update: ManufacturerUpdate,
-    superuser: UserPublic = Depends(get_current_superuser),
-) -> Manufacturer:
-    manufacturer: Manufacturer | None = session.get(
+    superuser: Annotated[
+        UserPublic,
+        Depends(get_current_superuser),
+    ],
+    manufacturer: Annotated[
         Manufacturer,
-        manufacturer_id,
-    )
-    if not manufacturer:
-        raise HTTPException(
-            status_code=404,
-            detail="Manufacturer not found",
-        )
+        Depends(get_manufacturer_by_id_dep),
+    ],
+) -> Manufacturer:
     for field, value in model_update.model_dump(exclude_unset=True).items():
         setattr(manufacturer, field, value)
     session.commit()
@@ -110,22 +93,16 @@ def update_manufacturer(
     status_code=204,
 )
 def delete_manufacturer(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
+    session: SessionGetter,
+    superuser: Annotated[
+        UserPublic,
+        Depends(get_current_superuser),
     ],
-    manufacturer_id: int,
-    superuser: UserPublic = Depends(get_current_superuser),
-) -> None:
-    manufacturer: Manufacturer | None = session.get(
+    manufacturer: Annotated[
         Manufacturer,
-        manufacturer_id,
-    )
-    if not manufacturer:
-        raise HTTPException(
-            status_code=404,
-            detail="Manufacturer not found",
-        )
+        Depends(get_manufacturer_by_id_dep),
+    ],
+) -> None:
     session.delete(manufacturer)
     session.commit()
     logging.warning(
@@ -142,10 +119,7 @@ def delete_manufacturer(
     status_code=201,
 )
 def create_manufacturer(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
+    session: SessionGetter,
     manufacturer: ManufacturerBase,
     superuser: UserPublic = Depends(get_current_superuser),
 ):

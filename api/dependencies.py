@@ -3,13 +3,16 @@ from typing import Annotated
 from fastapi import Depends, Form, HTTPException
 from starlette import status
 from jwt.exceptions import InvalidTokenError
-from core.models import User
+from core.models import User, Manufacturer, Product
 from crud import get_user_by_username
 from fastapi.security import OAuth2PasswordBearer
 from core.schemas import UserBase
 from auth import jwt_helper
 from core.get_db import get_db
 from sqlalchemy.orm import Session
+
+
+SessionGetter = Annotated[Session, Depends(get_db.session_getter)]
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/jwt/login/")
@@ -29,10 +32,7 @@ def get_current_token_payload(
 
 
 def get_current_auth_user(
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
+    session: SessionGetter,
     payload: dict = Depends(get_current_token_payload),
 ) -> User:
     username: str | None = payload.get("sub")
@@ -100,3 +100,35 @@ def validate_auth_user(
             detail="You need to be active before you can use this method",
         )
     return user
+
+
+def get_manufacturer_by_id_dep(
+    session: SessionGetter,
+    manufacturer_id: int,
+) -> Manufacturer:
+    manufacturer: Manufacturer | None = session.get(
+        Manufacturer,
+        manufacturer_id,
+    )
+    if not manufacturer:
+        raise HTTPException(
+            status_code=404,
+            detail="Manufacturer not found",
+        )
+    return manufacturer
+
+
+def get_product_by_id_dep(
+    session: SessionGetter,
+    product_id: int,
+) -> Product:
+    product: Product | None = session.get(
+        Product,
+        product_id,
+    )
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+    return product
