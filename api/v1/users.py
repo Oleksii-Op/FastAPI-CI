@@ -1,14 +1,20 @@
 from typing import Annotated
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
-from api.dependencies import get_current_active_auth_user
-from core.get_db import get_db
+from api.dependencies import (
+    get_current_active_auth_user,
+    SessionGetter,
+    get_user_by_id_dep,
+)
 from fastapi import APIRouter, Depends, HTTPException, status
 from core.models import User
-from core.schemas import UserPatch, UserBase, UserPublic, UserCreate
-
+from core.schemas import (
+    UserPatch,
+    UserBase,
+    UserPublic,
+    UserCreate,
+)
 
 from auth.jwt_helper import hash_password
 
@@ -24,10 +30,7 @@ router = APIRouter(
 )
 def create_user(
     user: UserCreate,
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
-    ],
+    session: SessionGetter,
 ) -> UserBase:
     user_dict = user.model_dump()
     user_dict["is_active_user"] = True
@@ -54,20 +57,11 @@ def create_user(
     status_code=status.HTTP_200_OK,
 )
 def get_user(
-    user_id: int,
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
+    user: Annotated[
+        User,
+        Depends(get_user_by_id_dep),
     ],
 ) -> User | None:
-    user: User | None = session.get(
-        User,
-        user_id,
-    )
-    if not user:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-        )
     return user
 
 
@@ -79,30 +73,27 @@ def get_user(
 def update_user(
     user_id: int,
     user_in: UserPatch,
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
+    session: SessionGetter,
+    user_dep: Annotated[
+        UserPublic,
+        Depends(get_current_active_auth_user),
     ],
-    user_dep: UserPublic = Depends(get_current_active_auth_user),
+    user: Annotated[
+        User,
+        Depends(get_user_by_id_dep),
+    ],
 ) -> User | None:
     if not user_dep.is_superuser and user_dep.id != user_id:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
             detail="You do not have sufficient privileges",
         )
-    user: User | None = session.get(
-        User,
-        user_id,
-    )
-    if not user:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-        )
     for field, value in user_in.model_dump(
-        exclude_unset=True, exclude=user_in.password
+        exclude_unset=True, exclude=user_in.password  # type: ignore
     ).items():
         setattr(user, field, value)
-    setattr(user, "password", hash_password(user_in.password))
+    if user_in.password is not None:
+        setattr(user, "password", hash_password(user_in.password))  # type: ignore
     session.commit()
     return user
 
@@ -113,11 +104,15 @@ def update_user(
 )
 def delete_user(
     user_id: int,
-    session: Annotated[
-        Session,
-        Depends(get_db.session_getter),
+    session: SessionGetter,
+    user_dep: Annotated[
+        UserPublic,
+        Depends(get_current_active_auth_user),
     ],
-    user_dep: UserPublic = Depends(get_current_active_auth_user),
+    user: Annotated[
+        User,
+        Depends(get_user_by_id_dep),
+    ],
 ) -> None:
     if not user_dep.is_superuser and user_dep.id != user_id:
         raise HTTPException(
@@ -128,14 +123,6 @@ def delete_user(
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             detail="Superusers cannot be deleted",
-        )
-    user: User | None = session.get(
-        User,
-        user_id,
-    )
-    if not user:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
         )
     session.delete(user)
     session.commit()

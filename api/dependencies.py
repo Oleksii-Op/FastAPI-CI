@@ -132,3 +132,18 @@ def get_product_by_id_dep(
             detail="Product not found",
         )
     return product
+
+
+def get_user_by_id_dep(
+    session: SessionGetter,
+    user_id: int,
+) -> User:
+    user: User | None = session.get(
+        User,
+        user_id,
+    )
+    if not user:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+        )
+    return user

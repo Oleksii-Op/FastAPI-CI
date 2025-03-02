@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, AfterValidator, Field, ConfigDict, EmailStr
@@ -42,13 +43,15 @@ class UserCreate(UserBase):
         max_length=128,
     )
 
-
+# DO NOT USE THIS SCHEMA IN ROUTES
 class FullUser(UserCreate):
     id: int
 
 
 class UserPublic(UserBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
 
 
 class UserPatch(BaseModel):
