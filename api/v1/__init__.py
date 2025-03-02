@@ -11,5 +11,11 @@ router.include_router(
     users_router,
     prefix=settings.api.v1.users,
 )
-router.include_router(manufacturers_router)
-router.include_router(products_router)
+router.include_router(
+    manufacturers_router,
+    prefix=settings.api.v1.manufacturers,
+)
+router.include_router(
+    products_router,
+    prefix=settings.api.v1.products,
+)

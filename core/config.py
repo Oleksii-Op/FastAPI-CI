@@ -39,6 +39,9 @@ class RuntimeSettings(BaseModel):
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
+    products: str = "/products"
+    manufacturers: str = "/manufacturers"
+    auth: str = "/auth"
 
 
 class ApiPrefix(BaseModel):

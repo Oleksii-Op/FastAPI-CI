@@ -20,7 +20,6 @@ from core.schemas.manufacturer import (
 )
 
 router = APIRouter(
-    prefix="/manufacturers",
     tags=["Manufacturers"],
 )
 

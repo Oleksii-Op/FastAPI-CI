@@ -15,7 +15,6 @@ from core.schemas.product import ProductBase, ProductView, ProductUpdate
 import logging
 
 router = APIRouter(
-    prefix="/products",
     tags=["Products"],
 )
 
