@@ -1,11 +1,10 @@
-from datetime import datetime
-
 from sqlalchemy.orm import Mapped, mapped_column
 from core.models.base import Base
 from sqlalchemy import String
+from core.models.mixins import CreatedUpdatedMixin
 
 
-class User(Base):
+class User(CreatedUpdatedMixin, Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(
         primary_key=True,
@@ -18,8 +17,3 @@ class User(Base):
     age: Mapped[int | None]
     is_active_user: Mapped[bool]
     is_superuser: Mapped[bool]
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(
-        default=datetime.now,
-        onupdate=datetime.now,
-    )

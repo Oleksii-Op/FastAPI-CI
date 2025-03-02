@@ -52,7 +52,7 @@ def test_delete_superuser(client: TestClient) -> None:
         data=form_data,
     )
     response = client.delete(
-        url="/api/v1/users/user/2",
+        url="/api/v1/users/user/1",
         headers={"Authorization": f"Bearer {response_token.json()['access_token']}"},
     )
     assert response_token.status_code == 200
